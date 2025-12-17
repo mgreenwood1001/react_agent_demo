@@ -35,27 +35,24 @@ except Exception:
 # -------------------------
 # Tools (same safe implementations)
 # -------------------------
-def tool_search(query: str, max_chars: int = 800) -> str:
+from ddgs import DDGS
+
+def tool_search(query: str, max_results: int = 3) -> str:
     if not query:
         return "search: empty query"
-    headers = {"User-Agent": "ReactAgent/1.0 (educational project; contact@example.com)"}
-    params = {"action": "query", "format": "json", "list": "search", "srsearch": query, "srlimit": 1}
-    resp = requests.get("https://en.wikipedia.org/w/api.php", params=params, headers=headers, timeout=10)
-    resp.raise_for_status()
-    data = resp.json()
-    hits = data.get("query", {}).get("search", [])
-    if not hits:
-        return f"No wiki result for: {query}"
-    title = hits[0]["title"]
-    summary_resp = requests.get(
-        f"https://en.wikipedia.org/api/rest_v1/page/summary/{requests.utils.requote_uri(title)}",
-        headers=headers,
-        timeout=10,
-    )
-    if summary_resp.status_code != 200:
-        return f"Found page {title} but could not fetch summary."
-    summary = summary_resp.json().get("extract", "")
-    return f"{title}: {summary[:max_chars]}"
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.text(query, max_results=max_results))
+        if not results:
+            return f"No results found for: {query}"
+        summaries = []
+        for r in results:
+            title = r.get("title", "")
+            body = r.get("body", "")
+            summaries.append(f"- {title}: {body}")
+        return "\n".join(summaries)
+    except Exception as e:
+        return f"Search error: {e}"
 
 ALLOWED_AST_NODES = {
     ast.Expression, ast.BinOp, ast.UnaryOp, ast.Num, ast.Constant,
@@ -87,11 +84,11 @@ def dispatch_function_call(function_name: str, args: dict) -> str:
 FUNCTIONS = [
     {
         "name": "search",
-        "description": "Search Wikipedia and return a short summary for a query",
+        "description": "Search the web using DuckDuckGo and return relevant results",
         "parameters": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "What to search for on Wikipedia"}
+                "query": {"type": "string", "description": "What to search for on the web"}
             },
             "required": ["query"]
         }

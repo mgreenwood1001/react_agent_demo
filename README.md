@@ -4,7 +4,7 @@ A minimal implementation of the [ReAct (Reasoning + Acting)](https://arxiv.org/a
 
 ## Features
 
-- **Wikipedia Search** — Look up factual information from Wikipedia
+- **Web Search** — Search the web using DuckDuckGo (no API key required)
 - **Calculator** — Safely evaluate mathematical expressions
 - **ReAct Loop** — The agent reasons step-by-step, calling tools as needed until it reaches a final answer
 
@@ -52,7 +52,7 @@ The agent follows the ReAct pattern:
 
 | Tool | Description |
 |------|-------------|
-| `search(query)` | Search Wikipedia and return a summary |
+| `search(query)` | Search the web using DuckDuckGo |
 | `calc(expression)` | Evaluate a math expression (e.g., `(3+4)*5`) |
 
 ## Example
